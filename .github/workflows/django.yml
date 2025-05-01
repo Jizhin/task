@@ -35,4 +35,4 @@ jobs:
         run: docker compose -f talks_project/docker-compose.yml build  # Correct path to docker-compose.yml
 
       - name: Start services (docker compose up)
-        run: docker compose -f talks_project/docker-compose.yml up -d
+        run: docker compose -f talks_project/docker-compose.yml up

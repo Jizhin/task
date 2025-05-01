@@ -21,4 +21,5 @@ urlpatterns = [
     path('api/' , include('users.urls')) ,
     path('auth/' , include('social_django.urls' , namespace='social')) ,
     path('api-task/' , include('tasks.urls')) ,
+    path('accounts/', include('allauth.urls')),
 ]

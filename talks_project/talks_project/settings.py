@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,6 +47,11 @@ INSTALLED_APPS = [
     'users',
     'tasks',
     'social_django',
+    'allauth' ,
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.github',
 ]
 
 REST_FRAMEWORK = {
@@ -66,9 +73,34 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'talks_project.urls'
+
+google_client_id = os.getenv("GOOGLE_CLIENT_ID")
+google_client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+SOCIAL_AUTH_GITHUB_KEY = os.getenv("SOCIAL_AUTH_GITHUB_KEY")
+SOCIAL_AUTH_GITHUB_SECRET = os.getenv("SOCIAL_AUTH_GITHUB_SECRET")
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': google_client_id,
+            'secret': google_client_secret,
+        },
+        'METHOD': 'oauth2',
+    },
+    'github': {
+        'APP': {
+            'client_id': SOCIAL_AUTH_GITHUB_KEY,
+            'secret': SOCIAL_AUTH_GITHUB_SECRET,
+        },
+        'METHOD': 'oauth2',
+    }
+}
+
+SOCIAL_ACCOUNT_LOGIN_ON_GET = True
 
 TEMPLATES = [
     {

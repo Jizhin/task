@@ -14,3 +14,4 @@ social-auth-app-django
 pytest
 pytest-django
 coverage
+python-dotenv

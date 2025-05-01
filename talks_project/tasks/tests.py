@@ -5,7 +5,7 @@ from channels.testing import WebsocketCommunicator
 from asgiref.sync import async_to_sync
 import json
 from channels.layers import get_channel_layer
-from .consumers import NotificationConsumer
+from talks_project.talks_project.notification import NotificationConsumer
 
 User = get_user_model()
 

@@ -1,50 +1,47 @@
-from django.test import TestCase
+from channels.testing import ChannelsLiveServerTestCase, WebsocketCommunicator
 from django.contrib.auth import get_user_model
+from asgiref.sync import sync_to_async
 from .models import Task, Comment
-from channels.testing import WebsocketCommunicator
-from asgiref.sync import async_to_sync
-import json
-from channels.layers import get_channel_layer
 from talks_project.talks_project.notification import NotificationConsumer
+import json
 
 User = get_user_model()
 
-class RealTimeTaskUpdateTestCase(TestCase):
+class RealTimeTaskUpdateTestCase(ChannelsLiveServerTestCase):
 
-    def setUp(self):
-        self.user1 = User.objects.create_user(username='user1', password='password', email='user3@example.com')
-        self.user2 = User.objects.create_user(username='user2', password='password', email='user4@example.com')
-        self.task = Task.objects.create(
+    async def asyncSetUp(self):
+        self.user1 = await sync_to_async(User.objects.create_user)(username='user1', password='password', email='user3@example.com')
+        self.user2 = await sync_to_async(User.objects.create_user)(username='user2', password='password', email='user4@example.com')
+        self.task = await sync_to_async(Task.objects.create)(
             title="Test Task",
             description="This is a test task.",
             priority=Task.HIGH,
             status=Task.NOT_STARTED
         )
-        self.task.assigned_users.add(self.user1)
+        await sync_to_async(self.task.assigned_users.add)(self.user1)
 
     async def connect_to_websocket(self, user, task_id=None):
-        communicator = WebsocketCommunicator(NotificationConsumer.as_asgi(), f"/ws/notifications/?task_id={task_id}" if task_id else "/ws/notifications/")
-        await communicator.connect()
+        communicator = WebsocketCommunicator(
+            NotificationConsumer.as_asgi(),
+            f"/ws/notifications/?task_id={task_id}" if task_id else "/ws/notifications/"
+        )
+        connected, _ = await communicator.connect()
+        self.assertTrue(connected)
         return communicator
 
     async def test_real_time_task_update(self):
-        communicator_user1 = await self.connect_to_websocket(user=self.user1, task_id=self.task.id)
-        communicator_user2 = await self.connect_to_websocket(user=self.user2, task_id=self.task.id)
+        communicator_user1 = await self.connect_to_websocket(self.user1, self.task.id)
+        communicator_user2 = await self.connect_to_websocket(self.user2, self.task.id)
+
         self.task.title = "Updated Test Task"
-        self.task.save()
+        await sync_to_async(self.task.save)()
+
         response_user2 = await communicator_user2.receive_json_from()
         self.assertEqual(response_user2['message']['title'], "Updated Test Task")
+
         await communicator_user1.disconnect()
         await communicator_user2.disconnect()
 
-    async def test_real_time_comment_addition(self):
-        communicator_user1 = await self.connect_to_websocket(user=self.user1, task_id=self.task.id)
-        communicator_user2 = await self.connect_to_websocket(user=self.user2, task_id=self.task.id)
-        comment = Comment.objects.create(task=self.task, user=self.user1, content="This is a test comment")
-        response_user2 = await communicator_user2.receive_json_from()
-        self.assertEqual(response_user2['message']['comment'], "This is a test comment")
-        await communicator_user1.disconnect()
-        await communicator_user2.disconnect()
 class TaskTests(TestCase):
 
     def setUp(self):

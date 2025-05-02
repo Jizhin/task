@@ -7,48 +7,58 @@ User = get_user_model()
 class TaskTests(TestCase):
 
     def setUp(self):
-        self.user1 = User.objects.create_user(username='user1', password='password', email='user3@example.com')
-        self.user2 = User.objects.create_user(username='user2', password='password', email='user4@example.com')
+        self.user1 = get_user_model().objects.create_user(username='user1', password='password', email='user3@example.com')
+        self.user2 = get_user_model().objects.create_user(username='user2', password='password', email='user4@example.com')
 
     def test_task_creation(self):
         task = Task.objects.create(
             title="Test Task",
             description="This is a test task.",
             priority=Task.HIGH,
-            status=Task.NOT_STARTED
+            status=Task.NOT_STARTED,
+            created_by=self.user1
         )
-        task.save()
         task.assigned_users.add(self.user1)
+        task.save()
+
         self.assertEqual(task.title, "Test Task")
         self.assertEqual(task.assigned_users.count(), 1)
         self.assertIn(self.user1, task.assigned_users.all())
+        self.assertEqual(task.created_by, self.user1)
 
     def test_task_update(self):
         task = Task.objects.create(
             title="Test Task",
             description="This is a test task.",
             priority=Task.HIGH,
-            status=Task.NOT_STARTED
+            status=Task.NOT_STARTED,
+            created_by=self.user1
         )
         task.assigned_users.add(self.user1)
+
         task.title = "Updated Task Title"
         task.status = Task.IN_PROGRESS
+        task.updated_by = self.user2
         task.save()
         task.refresh_from_db()
+
         self.assertEqual(task.title, "Updated Task Title")
         self.assertEqual(task.status, Task.IN_PROGRESS)
+        self.assertEqual(task.updated_by, self.user2)
 
     def test_task_deletion(self):
         task = Task.objects.create(
             title="Test Task",
             description="This is a test task.",
             priority=Task.HIGH,
-            status=Task.NOT_STARTED
+            status=Task.NOT_STARTED,
+            created_by=self.user1
         )
         task.assigned_users.add(self.user1)
 
         task_id = task.id
         task.delete()
+
         with self.assertRaises(Task.DoesNotExist):
             Task.objects.get(id=task_id)
 

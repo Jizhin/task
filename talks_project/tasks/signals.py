@@ -65,16 +65,12 @@ def post_delete_task_notification(sender, instance, **kwargs):
         }
     )
 
-@receiver(pre_save, sender=Comment)
-def pre_save_comment(sender, instance, **kwargs):
-    if instance.id:
-        previous = Comment.objects.get(id=instance.id)
-        if previous.content != instance.content:
-            status_ = f"Comment updated: {instance.content}"
-        else:
-            status_ = "Nothing changed"
+@receiver(post_save, sender=Comment)
+def pre_save_comment(sender, instance, created, **kwargs):
+    if created:
+        status_ = f"New comment posted: {instance.content} to task {instance.task.title}"
     else:
-        status_ = f"New comment posted: {instance.content}"
+        status_ = f"New comment updated: {instance.content} to task {instance.task.title}"
     comment_data = {
         "comment_id": instance.id,
         "content": instance.content,

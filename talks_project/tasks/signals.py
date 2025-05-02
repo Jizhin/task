@@ -34,12 +34,6 @@ def pre_save_task(sender, instance, **kwargs):
                 'message': data
             }
         )
-        async_to_sync(channel_layer.group_send)(
-            f"task_{instance.id}", {
-                'type': 'send_live_data',
-                'message': data
-            }
-        )
     else:
         data = {
             "title": instance.title,
@@ -50,12 +44,6 @@ def pre_save_task(sender, instance, **kwargs):
         }
         async_to_sync(channel_layer.group_send)(
             "live_data_live_data", {
-                'type': 'send_live_data',
-                'message': data
-            }
-        )
-        async_to_sync(channel_layer.group_send)(
-            f"task_{instance.id}", {
                 'type': 'send_live_data',
                 'message': data
             }
@@ -76,50 +64,55 @@ def post_delete_task_notification(sender, instance, **kwargs):
             "message": data
         }
     )
-    async_to_sync(channel_layer.group_send)(
-        f"task_{instance.id}", {
-            "type": "send_live_data",
-            "message": data
-        }
-    )
 
 @receiver(pre_save, sender=Comment)
 def pre_save_comment(sender, instance, **kwargs):
     if instance.id:
         previous = Comment.objects.get(id=instance.id)
+        if previous.content != instance.content:
+            status_ = f"Comment updated: {instance.content}"
+        else:
+            status_ = "Nothing changed"
     else:
-        data = {
-            "comment": instance.content,
-            "status_": f"{instance.user.username} added a comment on {instance.task.title}"
-        }
-        async_to_sync(channel_layer.group_send)(
-            "live_data_live_data", {
-                'type': 'send_live_data',
-                'message': data
-            }
-        )
-        async_to_sync(channel_layer.group_send)(
-            f"task_{instance.task.id}", {
-                'type': 'send_live_data',
-                'message': data
-            }
-        )
-
-@receiver(post_delete, sender=Comment)
-def post_delete_comment_notification(sender, instance, **kwargs):
-    data = {
-        "comment": instance.content,
-        "status_": f"Comment deleted for task '{instance.task.title}'"
+        status_ = f"New comment posted: {instance.content}"
+    comment_data = {
+        "comment_id": instance.id,
+        "content": instance.content,
+        "task_id": instance.task.id,
+        "status_": status_,
+        "user": instance.user.username,
     }
     async_to_sync(channel_layer.group_send)(
         "live_data_live_data", {
-            "type": "send_live_data",
-            "message": data
+            'type': 'send_live_data',
+            'message': comment_data
         }
     )
     async_to_sync(channel_layer.group_send)(
         f"task_{instance.task.id}", {
+            'type': 'send_comment_data',
+            'message': comment_data
+        }
+    )
+
+@receiver(post_delete, sender=Comment)
+def post_delete_comment_notification(sender, instance, **kwargs):
+    comment_data = {
+        "comment_id": instance.id,
+        "content": instance.content,
+        "task_id": instance.task.id,
+        "status_": f"Comment deleted for task '{instance.task.title}'",
+        "user": instance.user.username,
+    }
+    async_to_sync(channel_layer.group_send)(
+        "live_data_live_data", {
             "type": "send_live_data",
-            "message": data
+            "message": comment_data
+        }
+    )
+    async_to_sync(channel_layer.group_send)(
+        f"task_{instance.task.id}", {
+            "type": "send_comment_data",
+            "message": comment_data
         }
     )

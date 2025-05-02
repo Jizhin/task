@@ -30,6 +30,10 @@ class Task(models.Model):
     priority = models.CharField(max_length=10 , choices=PRIORITY_CHOICES , default=LOW)
     status = models.CharField(max_length=15 , choices=STATUS_CHOICES , default=NOT_STARTED)
     assigned_users = models.ManyToManyField(User , related_name="tasks")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="created_by")
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="updated_by", null=True, blank=True)
+
+
 
     def __str__(self):
         return self.title

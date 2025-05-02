@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class TaskListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
 
     def get(self , request):
         tasks = Task.objects.all()
@@ -21,6 +20,7 @@ class TaskListCreateView(APIView):
                 'priority': task.priority ,
                 'status': task.status ,
                 'assigned_users': [user.username for user in task.assigned_users.all()] ,
+                'created_by': task.created_by.username if task.created_by else None
             })
 
         return Response(task_data)
@@ -42,6 +42,7 @@ class TaskListCreateView(APIView):
             description=description ,
             priority=priority ,
             status=task_status ,
+            created_by=request.user
         )
         users = User.objects.filter(id__in=assigned_user)
         task.assigned_users.set(users)
@@ -92,8 +93,9 @@ class TaskDetailUpdateDeleteView(APIView):
             task.description = description
             task.priority = priority
             task.status = task_status
+            task.updated_by = request.user
             task.save()
-            new_user_ids = request.data.get('assigned_users')
+            new_user_ids =  request.data.get('assigned_users')
             if new_user_ids:
                 existing_users = set(task.assigned_users.values_list('id' , flat=True))
                 users_to_add = User.objects.filter(id__in=new_user_ids).exclude(id__in=existing_users)

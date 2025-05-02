@@ -9,24 +9,30 @@ channel_layer = get_channel_layer()
 
 @receiver(pre_save, sender=Task)
 def pre_save_task(sender, instance, **kwargs):
+    updated_status = []
     if instance.id:
         previous = Task.objects.get(id=instance.id)
         if previous.title != instance.title:
-            status_ = f"title changed to {instance.title}"
-        elif previous.description != instance.description:
-            status_ = f"description changed to {instance.description}"
-        elif previous.priority != instance.priority:
-            status_ = f"priority changed to {instance.priority}"
-        elif previous.status != instance.status:
-            status_ = f"status changed to {instance.status}"
+            status_ = f"title changed to {instance.title} by {instance.updated_by.username}"
+            updated_status.append(status_)
+        if previous.description != instance.description:
+            status_ = f"description changed to {instance.description} by {instance.updated_by.username}"
+            updated_status.append(status_)
+        if previous.priority != instance.priority:
+            status_ = f"priority changed to {instance.priority} by {instance.updated_by.username}"
+            updated_status.append(status_)
+        if previous.status != instance.status:
+            status_ = f"status changed to {instance.status} by {instance.updated_by.username}"
+            updated_status.append(status_)
         else:
             status_ = "Nothing changed"
+            updated_status.append(status_)
         data = {
             "title": instance.title,
             "description": instance.description,
             "priority": instance.priority,
             "status": instance.status,
-            "status_": status_
+            "status_": updated_status
         }
         async_to_sync(channel_layer.group_send)(
             "live_data_live_data", {
@@ -40,7 +46,7 @@ def pre_save_task(sender, instance, **kwargs):
             "description": instance.description,
             "priority": instance.priority,
             "status": instance.status,
-            "status_": f"Created task with title: {instance.title}"
+            "status_": f"Created task with title: {instance.title} by {instance.created_by.username}"
         }
         async_to_sync(channel_layer.group_send)(
             "live_data_live_data", {

@@ -3,7 +3,7 @@ from django.db import models
 
 class CustomUser(AbstractUser):
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(null=True, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

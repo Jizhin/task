@@ -99,7 +99,9 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': SOCIAL_AUTH_GITHUB_KEY,
             'secret': SOCIAL_AUTH_GITHUB_SECRET,
         },
-        'METHOD': 'oauth2',
+        'SCOPE': ['user' , 'user:email'] ,
+        'FIELDS': ['email' , 'name'],
+        'AUTH_PARAMS': {'allow_signup': 'true'},
     }
 }
 

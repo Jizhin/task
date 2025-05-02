@@ -73,7 +73,8 @@ class CommentTests(TestCase):
             title="Test Task",
             description="This is a test task.",
             priority=Task.HIGH,
-            status=Task.NOT_STARTED
+            status=Task.NOT_STARTED,
+            created_by=self.user1
         )
         self.task.assigned_users.add(self.user1)
 

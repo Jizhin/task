@@ -1,38 +1,49 @@
-clone the repo:
+## Clone the Repository
 
-git clone https://github.com/Jizhin/task.git
-cd talks_project
+ - git clone https://github.com/Jizhin/task.git
+ - cd talks_project
 
-activate env: source env/bin/activate or source env/Scripts/activate
+## Set Up Virtual Environment
 
-for social authentications:
-pip install django-allauth
-AUTHENTICATION_BACKENDS = [
-    ...
-    # Needed to login by username in Django admin, regardless of `allauth`
-    'django.contrib.auth.backends.ModelBackend',
+- source env/bin/activate for linux
+- source env/Scripts/activate for windows
 
-    # `allauth` specific authentication methods, such as login by email
-    'allauth.account.auth_backends.AuthenticationBackend',
-    ...
+
+## Social Authentication
+
+- pip install django-allauth
+- AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Default Django admin login
+    'allauth.account.auth_backends.AuthenticationBackend',  # Allauth specific
 ]
-
-urlpatterns = [
+- urlpatterns = [
     ...
     path('accounts/', include('allauth.urls')),
     ...
 ]
+- Allauth Quickstart: https://docs.allauth.org/en/latest/installation/quickstart.html
+- GitHub Login: http://localhost:8000/accounts/github/login/
+- Google Login: http://localhost:8000/accounts/google/login/
 
-https://docs.allauth.org/en/latest/installation/quickstart.html
+## Environment Variables
 
-for social authentication:
-
-pip install social-auth-app-django
-
-documentaion: https://python-social-auth.readthedocs.io/en/latest/configuration/django.html
-for github: https://python-social-auth.readthedocs.io/en/latest/backends/github.html
+- GOOGLE_CLIENT_ID=""
+- GOOGLE_CLIENT_SECRET=""
+- SOCIAL_AUTH_GITHUB_KEY=""
+- SOCIAL_AUTH_GITHUB_SECRET=""
 
 
-dockerized environemnt:
+## Test Coverage and unittest
 
-docker compose up --build
+- On pushing any change, the test suite will run automatically and provide the code coverage percentage.
+
+## Dockerized Environment
+
+- docker compose up --build
+
+
+## WebSocket
+
+- The Daphne server runs on port 8003.
+- Live notifications: ws://localhost:8003/ws/notifications/
+- Task-specific comments (replace 34 with the actual task ID): ws://localhost:8003/ws/task/34/

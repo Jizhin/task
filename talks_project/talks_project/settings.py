@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
+    'drf_yasg',
 ]
 
 REST_FRAMEWORK = {
@@ -110,7 +111,7 @@ SOCIAL_ACCOUNT_LOGIN_ON_GET = True
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -224,3 +225,11 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# Required for collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Optional for dev (to include extra static folders)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]

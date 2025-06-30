@@ -15,5 +15,6 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Copy project files
 COPY . .
 
+RUN python manage.py collectstatic --noinput
 # Run server
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8003", "talks_project.asgi:application"]
